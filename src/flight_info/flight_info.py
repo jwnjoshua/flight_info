@@ -194,13 +194,13 @@ def get_iata_airline_code():
   print(airline_country)
   print(airline_code)
 
-def flight_delay(arrival_airport=['FRA'],airline=['SQ'],flight_number=['26']):
+def flight_delay(airport='FRA',airline='SQ',flight_number='26'):
   """
     Finds the average 14-day delay over the past 2 weeks for any scheduled flight to any airport
 
     Parameters
     -----------
-    arrival_airport: Arrival airport of desired flight 
+    arrival_airport: 3-letter IATA code of arrival airport of desired flight 
     airline: 2-letter IATA airline code
     flight_number: Flight number of scheduled flight
     
@@ -209,7 +209,7 @@ def flight_delay(arrival_airport=['FRA'],airline=['SQ'],flight_number=['26']):
     --------
     Examples
     ---------
-    >>> flight_delay(arrival_airport=['NRT'],airline=['SQ'],flight_number=['12']
+    >>> flight_delay(arrival_airport='NRT',airline='SQ',flight_number='12')
         Start Date    End Date Flight number Departure Airport Arrival Airport  \
     0  2022-11-23  2022-12-07          SQ12               SIN             NRT   
 
@@ -219,23 +219,33 @@ def flight_delay(arrival_airport=['FRA'],airline=['SQ'],flight_number=['26']):
   """
   api_key = os.getenv("AVIATION_EDGE_API_KEY")
   
-  #getting start and end dates
-  today = dt.now()
-  three_days = td(days=3)
-  fourteen_days = td(days=14)
-  end_date = today - three_days
-  start_date = end_date - fourteen_days
-  end_date_str = str(end_date).split(" ")[0]
-  start_date_str = str(start_date).split(" ")[0]
+  # Parse strings in city_input_list 
+  
+  #error handling for arrival airport code
+  if not isinstance(airport, str): raise Exception("Airport code must contain only strings")
+  if len(airport)!=3: raise Exception("Error in input: please enter 3-letter IATA airport code")
+  
+  #error handling for airline code
+  if not isinstance(airline, str): raise Exception("Airline code must contain only strings")
+  if len(airline)!=2: raise Exception("Error in input: please enter 2-letter IATA airline code")
   
   #error handling for flight no
   try:
     flight_number = int(flight_number)
   except ValueError:
     print('Please input a valid flight number')
+
+  #getting start and end dates
+  today = dt.now()
+  three_days = td(days=4)
+  fourteen_days = td(days=14)
+  end_date = today - three_days
+  start_date = end_date - fourteen_days
+  end_date_str = str(end_date).split(" ")[0]
+  start_date_str = str(start_date).split(" ")[0]
     
   #api call
-  params = {'key':api_key, 'code':arrival_airport, 'type':'arrival', 'date_from':start_date_str, 'date_to':end_date_str, 'airline_iata':airline, 'flight_number':flight_number}
+  params = {'key':api_key, 'code':airport, 'type':'arrival', 'date_from':start_date_str, 'date_to':end_date_str, 'airline_iata':airline, 'flight_number':flight_number}
   try:
     r = requests.get('https://aviation-edge.com/v2/public/flightsHistory', params = params)
     r.raise_for_status() # If the response was successful, no Exception will be raised
@@ -249,6 +259,7 @@ def flight_delay(arrival_airport=['FRA'],airline=['SQ'],flight_number=['26']):
   dep_airport=[]
 
   f=r.json() #f is now a dict object
+  
   for d in f:
     for k in d:
       if k == 'arrival': #obtains delay by subtracting scheduled arrival time from estimated arrival time, returns delay in minutes
@@ -258,16 +269,17 @@ def flight_delay(arrival_airport=['FRA'],airline=['SQ'],flight_number=['26']):
   for i in delay:
     delay_minutes.append(int(i/60))
   
-  airline_flight_number = ''.join(airline+flight_number)
+  airline_flight_number = ''.join(airline+str(flight_number))
   average = sum(delay_minutes) / len(delay_minutes)
   average_list = [average]
   start_date_list = [start_date_str]
   end_date_list = [end_date_str]
   flight_no_list = [airline_flight_number]
-  arr_airport_list = [''.join(arrival_airport)]
+  arr_airport_list = [''.join(airport)]
   z = zip(start_date_list, end_date_list, flight_no_list, dep_airport[:2], arr_airport_list, average_list)
 
   df=pd.DataFrame(z, columns=['Start Date', 'End Date', 'Flight number', 'Departure Airport', 'Arrival Airport', 'Average Delay (Mins)'])
+  
   return(df)
 
 def get_flights(airport='SIN', date_from='2022-01-03', date_to='2022-01-30',airline='UA',flight_number='1'):

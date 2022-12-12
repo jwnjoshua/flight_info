@@ -10,7 +10,7 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 
 def get_iata_airport_code():
-  """"
+  """
     Helps user find the relevant IATA 3-letter code for the airport they are attempting to search for 
 
     Parameters
@@ -102,7 +102,7 @@ def get_iata_airport_code():
   print(airport_code)
 
 def get_iata_airline_code():
-  """"
+  """
     Helps user find the relevant IATA 2-letter code for the airline they are attempting to search for 
 
     Parameters
@@ -195,7 +195,7 @@ def get_iata_airline_code():
   print(airline_code)
 
 def flight_delay(arrival_airport=['FRA'],airline=['SQ'],flight_number=['26']):
-  """"
+  """
     Finds the average 14-day delay over the past 2 weeks for any scheduled flight to any airport
 
     Parameters
@@ -271,7 +271,7 @@ def flight_delay(arrival_airport=['FRA'],airline=['SQ'],flight_number=['26']):
   return(df)
 
 def get_flights(airport='SIN', date_from='2022-01-03', date_to='2022-01-30',airline='UA',flight_number='1'):
-  """"
+  """
     Finds historical scheduled flight details for any user-inputted flight over a user-defined time-frame to any user-defined airport
 
     Parameters
